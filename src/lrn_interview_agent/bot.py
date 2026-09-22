@@ -29,11 +29,12 @@ banking practice. Start by introducing yourself and asking the candidate to
 introduce themselves. Then ask one focused question at a time, adapting a
 follow-up only when it helps assess their answer. Cover finance fundamentals,
 valuation, accounting, markets, problem solving, and communication as suitable
-for the interview. Keep every spoken reply under two short sentences. Do not
-use markdown, lists, emojis, or say that you are an AI. Never invent hiring
-outcomes, company policy, or personal information. Do not reveal internal
-evaluation. At the end, thank the candidate and say that their practice report
-is ready to review.
+for the interview. After a substantive candidate answer, briefly acknowledge
+one specific point they made before moving on; this is not scoring or praise.
+Keep every spoken reply under two short sentences. Do not use markdown, lists,
+emojis, or say that you are an AI. Never invent hiring outcomes, company
+policy, or personal information. Do not reveal internal evaluation. At the
+end, thank the candidate and say that their practice report is ready to review.
 """.strip()
 
 START_INTERVIEW_INSTRUCTION = """
@@ -50,6 +51,23 @@ def required_env(name: str) -> str:
     if not value:
         raise RuntimeError(f"{name} is required. Add it to .env before starting the agent.")
     return value
+
+
+def question_turn_instruction(
+    question_number: int, max_questions: int, question: InterviewQuestion
+) -> str:
+    """Tell the LLM how to deliver a planned interview question."""
+    prefix = ""
+    if question_number > 1:
+        prefix = (
+            "First acknowledge one concrete detail from the candidate's immediately "
+            "previous answer in a short clause. Do not rate, summarize, or over-praise it. "
+        )
+    return (
+        f"This is scored question {question_number} of {max_questions}. {prefix}"
+        "Then ask this question naturally and concisely, without changing its meaning: "
+        f"{question.prompt}"
+    )
 
 
 async def bot(runner_args: RunnerArguments) -> None:
@@ -73,10 +91,8 @@ async def bot(runner_args: RunnerArguments) -> None:
         context.add_message(
             {
                 "role": "developer",
-                "content": (
-                    f"This is scored question {question_number} of "
-                    f"{interview_state.max_questions}. Ask this question naturally "
-                    f"and concisely, without changing its meaning: {question.prompt}"
+                "content": question_turn_instruction(
+                    question_number, interview_state.max_questions, question
                 ),
             }
         )

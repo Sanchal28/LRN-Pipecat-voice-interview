@@ -469,6 +469,26 @@ The interview has a concrete IB structure and no longer relies on the LLM to cou
 
 The first working prototype uses a curated six-question plan rather than dynamic generation. It is predictable, easy to test, and matches the requested small scope. A later planner can generate variants by domain but must still write them into this same bounded state before they are asked.
 
+#### Interview acknowledgement refinement
+
+The next-question instruction now requires the interviewer to acknowledge one concrete detail from the immediately previous candidate answer before asking question 2–6. For example, after a candidate mentions building a DCF, the interviewer can say, “You mentioned building a DCF for a consumer business,” then ask the accounting question. This makes the turn feel heard without turning the interviewer into a coach, scoring engine, or long summarizer.
+
+The rule is implemented in `question_turn_instruction()` and is exercised by a unit test. A synthetic live Groq check also returned this acknowledgement pattern before its next question.
+
+### Verification snapshot — 2026-09-22
+
+| Check | Result |
+| --- | --- |
+| Python unit tests | Passed: state limit, question-plan bounds, acknowledgement instruction |
+| Python compilation | Passed |
+| Next.js production build | Passed |
+| Pipecat client route (`/client/`) | HTTP 200 |
+| WebRTC CORS preflight (`/api/offer`) | HTTP 200 from `http://localhost:3000` |
+| Custom UI WebRTC smoke test | Passed: connecting -> listening, microphone connected, timer running |
+| Synthetic Groq acknowledgement turn | Passed with `openai/gpt-oss-20b` |
+
+Not fully automatable locally: microphone permissions, actual speaker output, network-quality degradation, and third-party provider outages. The UI now turns unreachable-backend and provider errors into visible session messages rather than silently leaving the candidate at “Connecting.”
+
 ## 10. Voice Pipeline
 
 See the diagram above. Pipecat's normal context/user-turn handling supports interruption frames. Phase 7 will verify real barge-in in the browser before making a stronger claim.

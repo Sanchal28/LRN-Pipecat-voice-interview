@@ -1,7 +1,8 @@
 import unittest
 
 from lrn_interview_agent.interview_state import InterviewState, InterviewStatus
-from lrn_interview_agent.question_plan import build_question_plan
+from lrn_interview_agent.bot import question_turn_instruction
+from lrn_interview_agent.question_plan import InterviewQuestion, build_question_plan
 
 
 class InterviewStateTests(unittest.TestCase):
@@ -24,6 +25,15 @@ class InterviewStateTests(unittest.TestCase):
         self.assertEqual(len(plan), 2)
         self.assertEqual(plan[0].topic, "background")
         self.assertEqual(plan[1].topic, "accounting")
+
+    def test_following_question_requires_a_concrete_acknowledgement(self):
+        question = InterviewQuestion("valuation", "How would you value a company?")
+        first_turn = question_turn_instruction(1, 6, question)
+        later_turn = question_turn_instruction(2, 6, question)
+
+        self.assertNotIn("First acknowledge", first_turn)
+        self.assertIn("First acknowledge one concrete detail", later_turn)
+        self.assertIn(question.prompt, later_turn)
 
 
 if __name__ == "__main__":

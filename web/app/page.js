@@ -18,10 +18,11 @@ function InterviewRoom() {
   const transportState = usePipecatClientTransportState();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [connectionError, setConnectionError] = useState("");
+  const [turnState, setTurnState] = useState("Ready to begin");
 
   const connected = transportState === "ready";
   const connecting = transportState === "connecting";
-  const status = connectionError ? "Connection failed" : connected ? "Listening" : connecting ? "Connecting" : "Ready to begin";
+  const status = connectionError ? "Connection failed" : connected ? turnState : connecting ? "Connecting" : "Ready to begin";
 
   useEffect(() => {
     if (!connected) return;
@@ -29,9 +30,27 @@ function InterviewRoom() {
     return () => window.clearInterval(interval);
   }, [connected]);
 
+  useEffect(() => {
+    if (!client) return;
+    const showProviderError = (message) => {
+      const detail = message?.data?.error;
+      setConnectionError(typeof detail === "string" ? detail : "The voice service had a problem. Please end the interview and try again.");
+    };
+    const events = [
+      ["botStartedSpeaking", () => setTurnState("Interviewer speaking")],
+      ["botStoppedSpeaking", () => setTurnState("Listening")],
+      ["userStartedSpeaking", () => setTurnState("Listening to your answer")],
+      ["userStoppedSpeaking", () => setTurnState("Preparing next question")],
+      ["error", showProviderError],
+    ];
+    events.forEach(([event, handler]) => client.on(event, handler));
+    return () => events.forEach(([event, handler]) => client.off(event, handler));
+  }, [client]);
+
   async function startInterview() {
     setElapsedSeconds(0);
     setConnectionError("");
+    setTurnState("Connecting");
     if (!client) return;
     try {
       await client.connect({
@@ -45,6 +64,7 @@ function InterviewRoom() {
   async function endInterview() {
     if (!client) return;
     await client.disconnect();
+    setTurnState("Ready to begin");
   }
 
   const minutes = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0");

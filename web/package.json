@@ -1,0 +1,16 @@
+{
+  "name": "lrn-interview-ui",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@pipecat-ai/client-react": "latest",
+    "@pipecat-ai/small-webrtc-transport": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  }
+}

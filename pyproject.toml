@@ -1,0 +1,19 @@
+[project]
+name = "lrn-interview-agent"
+version = "0.1.0"
+description = "A WebRTC voice interview agent for LRN"
+readme = "README.md"
+authors = [
+    { name = "Sanchal", email = "sanchal@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pipecat-ai[deepgram,groq,runner,webrtc]>=1.11.0",
+]
+
+[project.scripts]
+lrn-interview-agent = "lrn_interview_agent.bot:run"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
